@@ -128,7 +128,7 @@ proxy-groups:
   - name: AUTO
     icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Dark/Proxy.png
     type: url-test
-    hidden: false
+    hidden: true
     url: 'http://g.cn/generate_204'
     interval: 120
     tolerance: 20
@@ -361,4 +361,5 @@ rules:
   - RULE-SET,oisd_big,REJECT
   
   # Весь остальной трафик - напрямую
+
   - MATCH,DIRECT
