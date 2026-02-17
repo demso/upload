@@ -1,0 +1,364 @@
+tproxy-port: 4000
+socks-port: 7890 # SOCKS5 proxy port (если нужен прямой доступ к SOCKS5 прокси)
+allow-lan: true
+mode: rule
+log-level: silent
+ipv6: false
+external-controller: '0.0.0.0:9090' # адрес веб админки: http://192.168.1.1:9090/ui
+external-ui: ui
+external-ui-url: "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip"
+
+profile:
+  store-selected: true
+
+sniffer:
+  enable: true
+  parse-pure-ip: true
+  force-dns-mapping: true
+  sniff:
+    HTTP:
+    TLS:
+    QUIC:
+
+dns:
+  enable: true
+  prefer-h3: true
+  use-hosts: true
+  use-system-hosts: true
+  listen: 127.0.0.1:53
+  ipv6: false
+  enhanced-mode: redir-host
+  default-nameserver:
+    - tls://1.1.1.1
+    - tls://1.0.0.1
+    - tls://8.8.8.8
+    - tls://8.8.4.4
+    - tls://9.9.9.9
+    - https://8.8.8.8/dns-query
+    - https://1.1.1.1/dns-query
+    - https://9.9.9.9/dns-query
+  proxy-server-nameserver:
+    - tls://1.1.1.1
+    - tls://1.0.0.1
+    - tls://8.8.8.8
+    - tls://8.8.4.4
+    - tls://9.9.9.9
+    - https://8.8.8.8/dns-query
+    - https://cloudflare-dns.com/dns-query
+    - https://9.9.9.9/dns-query
+  direct-nameserver:
+    - tls://77.88.8.8#DIRECT
+    - https://77.88.8.8/dns-query#DIRECT
+  nameserver:
+    - https://cloudflare-dns.com/dns-query#PROXY
+
+# --- ПОДПИСКА НА ПРОКСИ-СЕРВЕРЫ ---
+proxy-providers:
+  sub:
+    type: http
+    url: https://sub.reliever.icu/ZEdxgu-jp6tVVTBL # Замените на свою ссылку подписки на прокси
+    path: ./proxy_providers/base64.yaml
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://g.cn/generate_204
+      interval: 300
+      timeout: 5000
+      lazy: true
+      expected-status: 204
+    override:
+      tfo: true
+      mptcp: true
+      udp: true
+
+# --- ГРУППЫ ПРОКСИ (ПОЛИТИКИ) ---
+proxy-groups:
+  - name: VPN
+    type: select
+    include-all: true
+    proxies:
+      - AUTO
+
+  - name: Telegram
+    type: select
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram.png
+    include-all: true
+    proxies:
+      - VPN
+      - DIRECT
+
+  - name: WhatsApp
+    type: select
+    icon: https://radika1.link/2026/02/17/poop11341a78ee7ebfc11.png
+    proxies:
+      - VPN
+      - DIRECT
+
+  - name: Steam
+    type: select
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Steam.png
+    include-all: true
+    proxies:
+      - DIRECT
+      - VPN
+
+  - name: YouTube
+    type: select
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
+    include-all: true
+    proxies:
+      - VPN
+      - DIRECT
+
+  - name: Twitch
+    type: select
+    icon: https://img.icons8.com/3d-fluency/94/twitch.png
+    proxies:
+      - DIRECT
+      - VPN
+
+  - name: AI & Разработка
+    type: select
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Dark/Bot.png
+    include-all: true
+    proxies:
+      - VPN
+      - DIRECT
+      
+  - name: AUTO
+    icon: https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Dark/Proxy.png
+    type: url-test
+    hidden: false
+    url: 'http://g.cn/generate_204'
+    interval: 120
+    tolerance: 20
+    include-all: true
+    proxies:
+
+# --- ПРОВАЙДЕРЫ ПРАВИЛ ---
+rule-providers:
+  telegram-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/telegram.mrs
+    path: ./rule-sets/telegram-domain.mrs
+    interval: 86400
+    
+  telegram-ips:
+    type: http
+    behavior: ipcidr
+    format: yaml
+    url: https://raw.githubusercontent.com/OMchik33/custom-rules/refs/heads/main/mihomo/telegram-ips.yaml
+    path: ./rule-sets/telegram-ips.yaml
+    interval: 86400
+    
+  whatsapp-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/whatsapp.mrs
+    path: ./rule-sets/whatsapp-domain.mrs
+    interval: 86400
+    
+  steam-domain:
+    type: http
+    behavior: domain
+    format: yaml
+    url: https://raw.githubusercontent.com/OMchik33/custom-rules/refs/heads/main/mihomo/gaming-domains.yaml
+    path: ./rule-sets/steam-domain.yaml
+    interval: 86400
+    
+  steam-ips:
+    type: http
+    behavior: ipcidr
+    format: yaml
+    url: https://raw.githubusercontent.com/OMchik33/custom-rules/refs/heads/main/mihomo/gaming-ips.yaml
+    path: ./rule-sets/steam-ips.yaml
+    interval: 86400
+    
+  youtube:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/MetaCubeX/meta-rules-dat/raw/meta/geo/geosite/youtube.mrs
+    path: ./rule-sets/youtube.mrs
+    interval: 86400
+    
+  twitch-domain:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/twitch.mrs
+    path: ./rule-sets/twitch-domain.mrs
+    interval: 86400
+    
+  discord_domains:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/MetaCubeX/meta-rules-dat/raw/meta/geo/geosite/discord.mrs
+    path: ./rule-sets/discord_domains.mrs
+    interval: 86400
+    
+  discord_voiceips:
+    type: http
+    behavior: ipcidr
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/other/discord-voice-ip-list.mrs
+    path: ./rule-sets/discord_voiceips.mrs
+    interval: 86400
+    
+  oisd_big:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/oisd/big.mrs
+    path: ./oisd/big.mrs
+    interval: 86400
+    
+  ru-bundle:
+    type: http
+    behavior: domain
+    format: mrs
+    url: https://github.com/legiz-ru/mihomo-rule-sets/raw/main/ru-bundle/rule.mrs
+    path: ./ru-bundle/rule.mrs
+    interval: 86400
+    
+  # AI и разработка (полный набор доменов)
+  github-ai:
+    type: inline
+    behavior: classical
+    format: text
+    payload:
+      # GitHub & VS Code
+      - DOMAIN-SUFFIX,githubcopilot.com
+      - DOMAIN-SUFFIX,github.dev
+      - DOMAIN-SUFFIX,github.com
+      - DOMAIN-SUFFIX,githubusercontent.com
+      - DOMAIN-SUFFIX,copilot-proxy.githubusercontent.com
+      - DOMAIN-SUFFIX,telemetry.individual.githubcopilot.com
+      - DOMAIN-SUFFIX,main.vscode-cdn.net
+      - DOMAIN-SUFFIX,api.github.com
+      - DOMAIN-SUFFIX,vscode.dev
+      - DOMAIN-SUFFIX,api.individual.githubcopilot.com
+      - DOMAIN-SUFFIX,marketplace.visualstudio.com
+      - DOMAIN-SUFFIX,vscode-cdn.net
+      - DOMAIN-SUFFIX,vscode.microsoft.com
+      - DOMAIN-SUFFIX,code.visualstudio.com
+      - DOMAIN-KEYWORD,copilot
+      - DOMAIN-KEYWORD,vscode
+      - DOMAIN-KEYWORD,github
+      
+      # Microsoft AI
+      - DOMAIN-SUFFIX,copilot.microsoft.com
+      - DOMAIN-SUFFIX,bing.com
+      - DOMAIN-SUFFIX,microsoftcopilot.app
+      - DOMAIN-SUFFIX,sydney.bing.com
+      - DOMAIN-SUFFIX,edgeservices.bing.com
+      - DOMAIN-SUFFIX,copilot.live.com
+      
+      # OpenAI
+      - DOMAIN-SUFFIX,openai.com
+      - DOMAIN-SUFFIX,api.openai.com
+      - DOMAIN-SUFFIX,chat.openai.com
+      - DOMAIN-SUFFIX,chatgpt.com
+      - DOMAIN-SUFFIX,platform.openai.com
+      - DOMAIN-KEYWORD,openai
+      - DOMAIN-KEYWORD,chatgpt
+      
+      # Google AI (Gemini & Bard)
+      - DOMAIN-SUFFIX,gemini.google.com
+      - DOMAIN-SUFFIX,bard.google.com
+      - DOMAIN-SUFFIX,ai.google.dev
+      - DOMAIN-SUFFIX,ai.google.com
+      - DOMAIN-SUFFIX,makersuite.google.com
+      - DOMAIN-SUFFIX,generativeai.google
+      - DOMAIN-SUFFIX,aistudio.google.com
+      - DOMAIN-KEYWORD,gemini
+      - DOMAIN-KEYWORD,bard
+      
+      # Anthropic Claude
+      - DOMAIN-SUFFIX,claude.ai
+      - DOMAIN-SUFFIX,anthropic.com
+      - DOMAIN-SUFFIX,console.anthropic.com
+      - DOMAIN-KEYWORD,claude
+      - DOMAIN-KEYWORD,anthropic
+      
+      # xAI (Grok)
+      - DOMAIN-SUFFIX,x.ai
+      - DOMAIN-SUFFIX,grok.x.ai
+      - DOMAIN-SUFFIX,api.x.ai
+      - DOMAIN-KEYWORD,grok
+      
+      # Perplexity
+      - DOMAIN-SUFFIX,perplexity.ai
+      - DOMAIN-SUFFIX,pplx.ai
+      - DOMAIN-KEYWORD,perplexity
+      
+      # Hugging Face
+      - DOMAIN-SUFFIX,huggingface.co
+      - DOMAIN-SUFFIX,hf.co
+      - DOMAIN-SUFFIX,huggingface.com
+      - DOMAIN-KEYWORD,huggingface
+      
+      # Midjourney & Creative AI
+      - DOMAIN-SUFFIX,midjourney.com
+      - DOMAIN-SUFFIX,cdn.midjourney.com
+      - DOMAIN-KEYWORD,midjourney
+      - DOMAIN-SUFFIX,stability.ai
+      - DOMAIN-SUFFIX,stablediffusionweb.com
+      - DOMAIN-SUFFIX,dreamstudio.ai
+      - DOMAIN-SUFFIX,runwayml.com
+      - DOMAIN-SUFFIX,runway.ml
+      
+      # Character.AI & Others
+      - DOMAIN-SUFFIX,character.ai
+      - DOMAIN-SUFFIX,beta.character.ai
+      - DOMAIN-SUFFIX,replicate.com
+      - DOMAIN-SUFFIX,cohere.ai
+      - DOMAIN-SUFFIX,cohere.com
+      
+      # Development Tools
+      - DOMAIN-SUFFIX,jetbrains.com
+      - DOMAIN-SUFFIX,replit.com
+      - DOMAIN-SUFFIX,repl.it
+      - DOMAIN-SUFFIX,stackoverflow.com
+      - DOMAIN-SUFFIX,docker.com
+      - DOMAIN-SUFFIX,docker.io
+      - DOMAIN-SUFFIX,npmjs.com
+      - DOMAIN-SUFFIX,pypi.org
+
+# --- ПРАВИЛА МАРШРУТИЗАЦИИ ---
+rules:
+  # Блокировка уязвимых UDP портов (безопасность)
+  - AND,((NETWORK,udp),(DST-PORT,135)),REJECT
+  - AND,((NETWORK,udp),(DST-PORT,137)),REJECT
+  - AND,((NETWORK,udp),(DST-PORT,138)),REJECT
+  - AND,((NETWORK,udp),(DST-PORT,139)),REJECT
+  - AND,((NETWORK,udp),(DST-PORT,443)),REJECT
+  
+  # AI и разработка (высший приоритет!)
+  - RULE-SET,github-ai,AI & Разработка
+  
+  # Социальные сети и мессенджеры
+  - OR,((RULE-SET,telegram-domain),(RULE-SET,telegram-ips)),Telegram
+  - RULE-SET,whatsapp-domain,WhatsApp
+  - OR,((RULE-SET,discord_domains),(RULE-SET,discord_voiceips)),VPN
+  
+  # Игры и развлечения
+  - OR,((RULE-SET,steam-domain),(RULE-SET,steam-ips)),Steam
+  - RULE-SET,youtube,YouTube
+  - RULE-SET,twitch-domain,Twitch
+  
+  # Заблокированные в РФ сайты
+  - RULE-SET,ru-bundle,VPN
+  
+  # Инструменты проверки IP
+  - OR,((DOMAIN,ipwho.is),(DOMAIN,api.ip.sb),(DOMAIN,ipapi.co),(DOMAIN,ipinfo.io)),VPN
+  
+  # Блокировка рекламы
+  - RULE-SET,oisd_big,REJECT
+  
+  # Весь остальной трафик - напрямую
+  - MATCH,DIRECT
